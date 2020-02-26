@@ -14,7 +14,10 @@ import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.androidtutz.anushka.ebookshop.adapter.BookAdapter;
 import com.androidtutz.anushka.ebookshop.databinding.ActivityMainBinding;
 import com.androidtutz.anushka.ebookshop.model.Book;
 import com.androidtutz.anushka.ebookshop.model.Category;
@@ -31,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     private MainActivityClickHandler clickHandler;
     private Category spinnerSelectedCategory;
     private List<Category> categoryList;
+    private List<Book> bookList;
+    private RecyclerView bookRecyclerView;
+    private BookAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,12 +68,25 @@ public class MainActivity extends AppCompatActivity {
             activityMainBinding.setSpinnerAdapter(arrayAdapter);
         });
 
-        mainActivityViewModel.getBookListByCategory(2).observe(this, books -> {
-            for (Book book : books) {
-                Log.d(TAG, "observe by id: " + book.getBookName());
-            }
-        });
+    }
 
+    private void loadRecyclerView() {
+        bookRecyclerView = activityMainBinding.secondaryLayout.rvBooks;
+        bookRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        bookRecyclerView.setHasFixedSize(true);
+
+        adapter = new BookAdapter();
+        bookRecyclerView.setAdapter(adapter);
+        adapter.setBookList(bookList);
+
+
+    }
+
+    private void loadBookArrayList(int categoryId) {
+        mainActivityViewModel.getBookListByCategory(categoryId).observe(this, books -> {
+            bookList = books;
+            loadRecyclerView();
+        });
     }
 
     @Override
@@ -96,7 +115,8 @@ public class MainActivity extends AppCompatActivity {
 
         public void onSpinnerItemSelected(AdapterView<?> parent,View view, int position, long id){
             spinnerSelectedCategory = (Category) parent.getItemAtPosition(position);
-            Toast.makeText(parent.getContext(), spinnerSelectedCategory.getCategoryName(), Toast.LENGTH_SHORT).show();
+            loadBookArrayList(spinnerSelectedCategory.getId());
+//            Toast.makeText(parent.getContext(), spinnerSelectedCategory.getCategoryName(), Toast.LENGTH_SHORT).show();
         }
 
 
